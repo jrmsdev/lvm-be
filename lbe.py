@@ -10,21 +10,45 @@ import sys
 
 from argparse import ArgumentParser
 
-DEBUG = os.getenv('LBE_DEBUG', None) is not None
+DEBUG: bool = os.getenv('LBE_DEBUG', None) is not None
 
 def dbg(msg):
 	"""Debug logs."""
 	if DEBUG:
 		print('[D]', msg, file = sys.stderr)
 
+class Config(object):
+	"""LBE configuration."""
+
+	debug: bool = DEBUG
+
+	def __init__(self, argv: list = []):
+		dbg(f"Config init argv={argv}")
+		if len(argv) > 0:
+			self.argparse(argv)
+
+	def argparse(self, args: list):
+		"""Config parse from CLI args."""
+		dbg(f"Config argparse: {args}")
+		parser = ArgumentParser(description = __doc__)
+		args = parser.parse_args(args = args)
+
 class LBE(object):
 	"""Linux LVM Boot Environments."""
-	pass
+
+	cfg: Config = None
+
+	def main(self, cfg: Config) -> int:
+		"""CLI main."""
+		dbg('LBE main')
+		self.cfg = cfg
+		return 0
 
 def main(argv: list = []) -> int:
 	"""CLI main."""
-	dbg('testing')
+	dbg('main')
+	cfg = Config(argv = argv)
 	return 9
 
 if __name__ == '__main__':
-	sys.exit(main())
+	sys.exit(main(sys.argv[1:]))
