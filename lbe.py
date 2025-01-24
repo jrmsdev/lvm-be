@@ -43,18 +43,19 @@ class LBE(object):
 
 	cfg: Config = None
 
-	def main(self, cfg: Config) -> int:
+	def __init__(self, cfg: Config):
+		self.cfg = cfg
+
+	def main(self) -> int:
 		"""CLI main."""
 		dbg('LBE: main')
-		self.cfg = cfg
 		return 0
 
 def main(argv: list = []) -> int:
 	"""CLI main."""
 	dbg('main: start')
-	lbe = LBE()
-	cfg = Config(argv = argv)
-	return lbe.main(cfg)
+	lbe = LBE(Config(argv = argv))
+	return lbe.main()
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv[1:]))
