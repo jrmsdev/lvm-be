@@ -20,23 +20,37 @@ def dbg(msg):
 class Config(object):
 	"""LBE configuration."""
 
-	debug: bool = DEBUG
+	debug:    bool = DEBUG
+	filename:  str = ""
 
 	def __init__(self, argv: list = []):
 		dbg(f"Config: init argv={argv}")
 		if len(argv) > 0:
 			self.argparse(argv)
 		dbg(f"Config: debug={self.debug}")
+		dbg(f"Config: filename={self.filename}")
 
 	def argparse(self, args: list):
 		"""Config parse from CLI args."""
 		dbg(f"Config argparse: {args}")
+
 		parser = ArgumentParser(description = __doc__)
+
 		parser.add_argument('--debug', '-d', action = 'store_true',
 			help = 'enable debug logs')
+		parser.add_argument('--config', '-f', type = str, required = False,
+			help = 'config filename', default = '~/.config/lvm-be.cfg')
+
 		args = parser.parse_args(args = args)
+
 		dbg(f"Config: args.debug={args.debug}")
 		self.debug = args.debug is True
+		dbg(f"Config: args.config={args.config}")
+		self.filename = args.config.strip()
+
+	def read(self) -> bool:
+		"""Read config filename."""
+		return False
 
 class LBE(object):
 	"""Linux LVM Boot Environments."""
@@ -46,16 +60,12 @@ class LBE(object):
 	def __init__(self, cfg: Config):
 		self.cfg = cfg
 
-	def main(self) -> int:
-		"""CLI main."""
-		dbg('LBE: main')
-		return 0
-
 def main(argv: list = []) -> int:
 	"""CLI main."""
 	dbg('main: start')
 	lbe = LBE(Config(argv = argv))
-	return lbe.main()
+	lbe.cfg.read()
+	return 0
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv[1:]))
