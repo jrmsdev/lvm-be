@@ -23,7 +23,7 @@ class Config(object):
 	debug: bool = DEBUG
 
 	def __init__(self, argv: list = []):
-		dbg(f"Config init argv={argv}")
+		dbg(f"Config: init argv={argv}")
 		if len(argv) > 0:
 			self.argparse(argv)
 		dbg(f"Config: debug={self.debug}")
@@ -45,15 +45,16 @@ class LBE(object):
 
 	def main(self, cfg: Config) -> int:
 		"""CLI main."""
-		dbg('LBE main')
+		dbg('LBE: main')
 		self.cfg = cfg
 		return 0
 
 def main(argv: list = []) -> int:
 	"""CLI main."""
-	dbg('main')
+	dbg('main: start')
+	lbe = LBE()
 	cfg = Config(argv = argv)
-	return 9
+	return lbe.main(cfg)
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv[1:]))
