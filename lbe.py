@@ -26,12 +26,17 @@ class Config(object):
 		dbg(f"Config init argv={argv}")
 		if len(argv) > 0:
 			self.argparse(argv)
+		dbg(f"Config: debug={self.debug}")
 
 	def argparse(self, args: list):
 		"""Config parse from CLI args."""
 		dbg(f"Config argparse: {args}")
 		parser = ArgumentParser(description = __doc__)
+		parser.add_argument('--debug', '-d', action = 'store_true',
+			help = 'enable debug logs')
 		args = parser.parse_args(args = args)
+		dbg(f"Config: args.debug={args.debug}")
+		self.debug = args.debug is True
 
 class LBE(object):
 	"""Linux LVM Boot Environments."""
