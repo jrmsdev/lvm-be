@@ -8,7 +8,9 @@ __doc__ = 'Linux LVM Boot Environments.'
 import os
 import sys
 
-from argparse import ArgumentParser
+from argparse     import ArgumentParser
+from configparser import ConfigParser
+from pathlib      import Path
 
 DEBUG: bool = os.getenv('LBE_DEBUG', None) is not None
 
@@ -20,15 +22,20 @@ def dbg(msg):
 class Config(object):
 	"""LBE configuration."""
 
-	debug:    bool = DEBUG
-	filename:  str = ""
+	debug: bool = DEBUG
+	file:  Path = None
 
 	def __init__(self, argv: list = []):
 		dbg(f"Config: init argv={argv}")
 		if len(argv) > 0:
 			self.argparse(argv)
 		dbg(f"Config: debug={self.debug}")
-		dbg(f"Config: filename={self.filename}")
+		dbg(f"Config: file={self.file}")
+		if not self.file.exists():
+			dbg(f"Config: {self.file} not found!")
+
+	def _getpath(self, name: str) -> Path:
+		return Path(name).expanduser()
 
 	def argparse(self, args: list):
 		"""Config parse from CLI args."""
@@ -46,10 +53,16 @@ class Config(object):
 		dbg(f"Config: args.debug={args.debug}")
 		self.debug = args.debug is True
 		dbg(f"Config: args.config={args.config}")
-		self.filename = args.config.strip()
+		self.file = self._getpath(args.config.strip())
 
 	def read(self) -> bool:
 		"""Read config filename."""
+		dbg(f"Config: read file={self.file}")
+		parser = ConfigParser(defaults = {
+			'lbe.debug': False,
+		})
+		loaded = parser.read([self.file.as_posix()])
+		dbg(f"Config: loaded files {loaded}")
 		return False
 
 class LBE(object):
