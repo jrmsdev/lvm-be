@@ -12,7 +12,7 @@ from argparse     import ArgumentParser
 from configparser import ConfigParser
 from pathlib      import Path
 
-DEBUG: bool = os.getenv('LBE_DEBUG', None) is not None
+DEBUG: bool = os.getenv('LBE_DEBUG', 'false') == 'true'
 
 def dbg(msg):
 	"""Debug logs."""
@@ -30,6 +30,9 @@ class Config(object):
 		if len(argv) > 0:
 			self.argparse(argv)
 		dbg(f"Config: debug={self.debug}")
+		if DEBUG:
+			self.debug = True
+			dbg(f"Config: debug={self.debug} was set from LBE_DEBUG env var")
 		dbg(f"Config: file={self.file}")
 		if not self.file.exists():
 			dbg(f"Config: {self.file} not found!")
@@ -39,12 +42,13 @@ class Config(object):
 
 	def argparse(self, args: list):
 		"""Config parse from CLI args."""
+		global DEBUG
 		dbg(f"Config argparse: {args}")
 
 		parser = ArgumentParser(description = __doc__)
 
 		parser.add_argument('--debug', '-d', action = 'store_true',
-			help = 'enable debug logs')
+			help = 'enable debug logs', default = False)
 		parser.add_argument('--config', '-f', type = str, required = False,
 			help = 'config filename', default = '~/.config/lvm-be.cfg')
 
@@ -52,17 +56,24 @@ class Config(object):
 
 		dbg(f"Config: args.debug={args.debug}")
 		self.debug = args.debug is True
+		if self.debug:
+			DEBUG = True
 		dbg(f"Config: args.config={args.config}")
 		self.file = self._getpath(args.config.strip())
 
 	def read(self) -> bool:
 		"""Read config filename."""
+		global DEBUG
 		dbg(f"Config: read file={self.file}")
-		parser = ConfigParser(defaults = {
+		cfg = ConfigParser(defaults = {
 			'lbe.debug': False,
 		})
-		loaded = parser.read([self.file.as_posix()])
+		loaded = cfg.read([self.file.as_posix()])
 		dbg(f"Config: loaded files {loaded}")
+		if cfg.has_option('lbe', 'debug') and cfg.getboolean('lbe', 'debug'):
+			DEBUG = True
+			self.debug = True
+			dbg(f"Config: debug={self.debug} was set from config file")
 		return False
 
 class LBE(object):
