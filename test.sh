@@ -1,6 +1,9 @@
 #!/bin/sh
 set -xeu
-shellcheck ./test.sh
-shellcheck ./t/run/typecheck.sh
+
+shellcheck ./*.sh
+shellcheck ./t/run/*.sh
+
 ./t/run/typecheck.sh
+
 exit 0
