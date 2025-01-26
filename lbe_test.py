@@ -31,11 +31,11 @@ class TestLBE(unittest.TestCase):
 		lbe.sys.stdout = t.stdout
 
 	def tearDown(t):
-		lbe.DEBUG = False
 		lbe.sys.stderr = t.__stderr
 		t.stderr = None
 		lbe.sys.stdout = t.__stdout
 		t.stdout = None
+		lbe.DEBUG = False
 
 #
 # Logs
@@ -90,7 +90,9 @@ class ConfigTest(TestLBE):
 		t.assertEqual(lbe.CONFIG_FILE, '~/.config/lvm-be.cfg')
 
 	def test__getpath(t):
-		pass
+		cfg = lbe.Config()
+		p = Path('~/.config/lvm-be.cfg')
+		t.assertEqual(p.expanduser(), cfg._getpath(lbe.CONFIG_FILE))
 
 class ConfigDebugTest(TestLBE):
 
