@@ -13,6 +13,8 @@ import lbe
 
 class TestLBE(unittest.TestCase):
 
+	enable_debug = False
+
 	stderr = None
 	stdout = None
 
@@ -20,12 +22,14 @@ class TestLBE(unittest.TestCase):
 	__stdout = lbe.sys.stdout
 
 	def setUp(t):
+		lbe.DEBUG = t.enable_debug
 		t.stderr = MagicMock()
 		lbe.sys.stderr = t.stderr
 		t.stdout = MagicMock()
 		lbe.sys.stdout = t.stdout
 
 	def tearDown(t):
+		lbe.DEBUG = False
 		lbe.sys.stderr = t.__stderr
 		t.stderr = None
 		lbe.sys.stdout = t.__stdout
@@ -46,6 +50,33 @@ class LogsTest(TestLBE):
 			call('\n'),
 		])
 		t.stderr.write.assert_not_called()
+
+	def test_msg(t):
+		lbe.msg('testing ...')
+		t.stdout.write.assert_has_calls([
+			call('testing ...'),
+			call('\n'),
+		])
+		t.stderr.write.assert_not_called()
+
+	def test_dbg(t):
+		lbe.dbg('testing ...')
+		t.stderr.write.assert_not_called()
+		t.stdout.write.assert_not_called()
+
+class LogsDebugTest(TestLBE):
+
+	enable_debug = True
+
+	def test_dbg(t):
+		lbe.dbg('testing ...')
+		t.stderr.write.assert_has_calls([
+			call('[D]'),
+			call(' '),
+			call('testing ...'),
+			call('\n'),
+		])
+		t.stdout.write.assert_not_called()
 
 #
 # Config
