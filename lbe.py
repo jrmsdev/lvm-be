@@ -14,10 +14,17 @@ from pathlib      import Path
 
 DEBUG: bool = os.getenv('LBE_DEBUG', 'false') == 'true'
 
+def _print(*args, file = None):
+	print(*args, file = file)
+
+def msg(msg):
+	"""Message logs."""
+	_print(msg, file = sys.stdout)
+
 def dbg(msg):
 	"""Debug logs."""
 	if DEBUG:
-		print('[D]', msg, file = sys.stderr)
+		_print('[D]', msg, file = sys.stderr)
 
 CONFIG_FILE = '~/.config/lvm-be.cfg'
 
