@@ -18,17 +18,20 @@ from pathlib      import Path
 
 DEBUG: bool = os.getenv('LBE_DEBUG', 'false') == 'true'
 
+_msgout = sys.stdout
+_dbgout = sys.stderr
+
 def _print(*args, file = None):
 	print(*args, file = file)
 
 def msg(msg):
 	"""Message logs."""
-	_print(msg, file = sys.stdout)
+	_print(msg, file = _msgout)
 
 def dbg(msg):
 	"""Debug logs."""
 	if DEBUG:
-		_print('[D]', msg, file = sys.stderr)
+		_print('[D]', msg, file = _dbgout)
 
 #
 # Config
@@ -82,11 +85,14 @@ class Config(object):
 		})
 		loaded = cfg.read([self.file.as_posix()])
 		dbg(f"Config: loaded files {loaded}")
+		if len(loaded) < 1:
+			dbg('Config: no files loaded')
+			return False
 		if cfg.getboolean('lbe', 'debug'):
 			DEBUG = True
 			self.debug = True
 			dbg('Config: debug was enable from config file')
-		return False
+		return True
 
 #
 # LBE

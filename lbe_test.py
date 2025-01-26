@@ -17,24 +17,30 @@ class TestLBE(unittest.TestCase):
 
 	enable_debug = False
 
-	stderr = None
-	stdout = None
+	config_filename = ''
 
-	__stderr = lbe.sys.stderr
-	__stdout = lbe.sys.stdout
+	msgout = None
+	dbgout = None
+
+	__msgout = lbe._msgout
+	__dbgout = lbe._dbgout
 
 	def setUp(t):
 		lbe.DEBUG = t.enable_debug
-		t.stderr = MagicMock()
-		lbe.sys.stderr = t.stderr
-		t.stdout = MagicMock()
-		lbe.sys.stdout = t.stdout
+		if t.config_filename != '':
+			lbe.CONFIG_FILE = t.config_filename.strip()
+		t.msgout = MagicMock()
+		lbe._msgout = t.msgout
+		t.dbgout = MagicMock()
+		lbe._dbgout = t.dbgout
 
 	def tearDown(t):
-		lbe.sys.stderr = t.__stderr
-		t.stderr = None
-		lbe.sys.stdout = t.__stdout
-		t.stdout = None
+		lbe._msgout = t.__msgout
+		t.msgout = None
+		lbe._dbgout = t.__dbgout
+		t.dbgout = None
+		if t.config_filename != '':
+			lbe.CONFIG_FILE = '~/.config/lvm-be.cfg'
 		lbe.DEBUG = False
 
 #
@@ -44,27 +50,25 @@ class TestLBE(unittest.TestCase):
 class LogsTest(TestLBE):
 
 	def test_print(t):
-		lbe._print('testing', '...')
-		t.stdout.write.assert_has_calls([
+		fh = MagicMock()
+		lbe._print('testing', '...', file = fh)
+		fh.write.assert_has_calls([
 			call('testing'),
 			call(' '),
 			call('...'),
 			call('\n'),
 		])
-		t.stderr.write.assert_not_called()
 
 	def test_msg(t):
 		lbe.msg('testing ...')
-		t.stdout.write.assert_has_calls([
+		t.msgout.write.assert_has_calls([
 			call('testing ...'),
 			call('\n'),
 		])
-		t.stderr.write.assert_not_called()
 
 	def test_dbg(t):
 		lbe.dbg('testing ...')
-		t.stderr.write.assert_not_called()
-		t.stdout.write.assert_not_called()
+		t.dbgout.write.assert_not_called()
 
 class LogsDebugTest(TestLBE):
 
@@ -72,13 +76,12 @@ class LogsDebugTest(TestLBE):
 
 	def test_dbg(t):
 		lbe.dbg('testing ...')
-		t.stderr.write.assert_has_calls([
+		t.dbgout.write.assert_has_calls([
 			call('[D]'),
 			call(' '),
 			call('testing ...'),
 			call('\n'),
 		])
-		t.stdout.write.assert_not_called()
 
 #
 # Config
@@ -106,7 +109,7 @@ class ConfigDebugTest(TestLBE):
 
 	def test_init(t):
 		cfg = lbe.Config()
-		t.stderr.write.assert_has_calls([
+		t.dbgout.write.assert_has_calls([
 			call('Config: debug was enabled from LBE_DEBUG env var'),
 		])
 
@@ -114,9 +117,17 @@ class ConfigDebugTest(TestLBE):
 		cfg = lbe.Config()
 		cfg.argparse(['--debug'])
 		t.assertTrue(lbe.DEBUG)
-		t.stderr.write.assert_has_calls([
+		t.dbgout.write.assert_has_calls([
 			call('Config: debug was enabled from CLI args'),
 		])
+
+class ConfigFileTest(TestLBE):
+
+	config_filename = './t/devel/lbedev.cfg'
+
+	def test_read(t):
+		cfg = lbe.Config()
+		t.assertFalse(cfg.read())
 
 #
 # LBE
