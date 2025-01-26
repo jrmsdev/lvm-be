@@ -29,6 +29,7 @@ class TestLBE(unittest.TestCase):
 		lbe.DEBUG = t.enable_debug
 		if t.config_filename != '':
 			lbe.CONFIG_FILE = t.config_filename.strip()
+			lbe.Config.file = Path(lbe.CONFIG_FILE)
 		t.msgout = MagicMock()
 		lbe._msgout = t.msgout
 		t.dbgout = MagicMock()
@@ -41,6 +42,7 @@ class TestLBE(unittest.TestCase):
 		t.dbgout = None
 		if t.config_filename != '':
 			lbe.CONFIG_FILE = '~/.config/lvm-be.cfg'
+			lbe.Config.file = Path(lbe.CONFIG_FILE)
 		lbe.DEBUG = False
 
 #
@@ -126,8 +128,10 @@ class ConfigFileTest(TestLBE):
 	config_filename = './t/devel/lbedev.cfg'
 
 	def test_read(t):
+		print(lbe.CONFIG_FILE)
 		cfg = lbe.Config()
-		t.assertFalse(cfg.read())
+		print(cfg.file)
+		t.assertTrue(cfg.read())
 
 #
 # LBE

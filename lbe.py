@@ -42,7 +42,7 @@ CONFIG_FILE = '~/.config/lvm-be.cfg'
 class Config(object):
 	"""LBE configuration."""
 
-	file:  Path = Path(CONFIG_FILE)
+	file: Path = Path(CONFIG_FILE)
 
 	def __init__(self):
 		if DEBUG:
