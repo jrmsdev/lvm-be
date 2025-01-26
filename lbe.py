@@ -12,6 +12,10 @@ from argparse     import ArgumentParser
 from configparser import ConfigParser
 from pathlib      import Path
 
+#
+# Logs
+#
+
 DEBUG: bool = os.getenv('LBE_DEBUG', 'false') == 'true'
 
 def _print(*args, file = None):
@@ -25,6 +29,10 @@ def dbg(msg):
 	"""Debug logs."""
 	if DEBUG:
 		_print('[D]', msg, file = sys.stderr)
+
+#
+# Config
+#
 
 CONFIG_FILE = '~/.config/lvm-be.cfg'
 
@@ -80,6 +88,10 @@ class Config(object):
 			dbg('Config: debug was enable from config file')
 		return False
 
+#
+# LBE
+#
+
 class LBE(object):
 	"""Linux LVM Boot Environments."""
 
@@ -92,7 +104,7 @@ class LBE(object):
 		self.cfg.read()
 		return 0
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
 	dbg('main')
 	lbe = LBE()
 	sys.exit(lbe.main(sys.argv[1:]))
