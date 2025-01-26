@@ -94,6 +94,12 @@ class ConfigTest(TestLBE):
 		p = Path('~/.config/lvm-be.cfg')
 		t.assertEqual(p.expanduser(), cfg._getpath(lbe.CONFIG_FILE))
 
+	def test_argparse(t):
+		cfg = lbe.Config()
+		cfg.argparse([])
+		t.assertFalse(lbe.DEBUG)
+		t.assertEqual(cfg._getpath(lbe.CONFIG_FILE), cfg.file)
+
 class ConfigDebugTest(TestLBE):
 
 	enable_debug = True
@@ -102,6 +108,14 @@ class ConfigDebugTest(TestLBE):
 		cfg = lbe.Config()
 		t.stderr.write.assert_has_calls([
 			call('Config: debug was enabled from LBE_DEBUG env var'),
+		])
+
+	def test_argparse(t):
+		cfg = lbe.Config()
+		cfg.argparse(['--debug'])
+		t.assertTrue(lbe.DEBUG)
+		t.stderr.write.assert_has_calls([
+			call('Config: debug was enabled from CLI args'),
 		])
 
 #
