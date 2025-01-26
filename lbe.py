@@ -19,16 +19,15 @@ def dbg(msg):
 	if DEBUG:
 		print('[D]', msg, file = sys.stderr)
 
+CONFIG_FILE = '~/.config/lvm-be.cfg'
+
 class Config(object):
 	"""LBE configuration."""
 
 	debug: bool = DEBUG
-	file:  Path = None
+	file:  Path = Path(CONFIG_FILE)
 
-	def __init__(self, argv: list = []):
-		dbg(f"Config: init argv={argv}")
-		if len(argv) > 0:
-			self.argparse(argv)
+	def __init__(self):
 		dbg(f"Config: debug={self.debug}")
 		if DEBUG:
 			self.debug = True
@@ -40,19 +39,19 @@ class Config(object):
 	def _getpath(self, name: str) -> Path:
 		return Path(name).expanduser()
 
-	def argparse(self, args: list):
+	def argparse(self, argv: list[str]):
 		"""Config parse from CLI args."""
 		global DEBUG
-		dbg(f"Config argparse: {args}")
+		dbg(f"Config: argparse {argv}")
 
 		parser = ArgumentParser(description = __doc__)
 
 		parser.add_argument('--debug', '-d', action = 'store_true',
 			help = 'enable debug logs', default = False)
 		parser.add_argument('--config', '-f', type = str, required = False,
-			help = 'config filename', default = '~/.config/lvm-be.cfg')
+			help = 'config filename', default = CONFIG_FILE)
 
-		args = parser.parse_args(args = args)
+		args = parser.parse_args(args = argv)
 
 		dbg(f"Config: args.debug={args.debug}")
 		self.debug = args.debug is True
@@ -65,8 +64,10 @@ class Config(object):
 		"""Read config filename."""
 		global DEBUG
 		dbg(f"Config: read file={self.file}")
+		if not self.file.exists():
+			dbg(f"Config: {self.file} not found!")
 		cfg = ConfigParser(defaults = {
-			'lbe.debug': False,
+			'lbe.debug': 'false',
 		})
 		loaded = cfg.read([self.file.as_posix()])
 		dbg(f"Config: loaded files {loaded}")
@@ -79,17 +80,16 @@ class Config(object):
 class LBE(object):
 	"""Linux LVM Boot Environments."""
 
-	cfg: Config = None
+	cfg: Config = Config()
 
-	def __init__(self, cfg: Config):
-		self.cfg = cfg
-
-def main(argv: list = []) -> int:
-	"""CLI main."""
-	dbg('main: start')
-	lbe = LBE(Config(argv = argv))
-	lbe.cfg.read()
-	return 0
+	def main(self, argv: list[str] = []) -> int:
+		"""LBE: CLI main."""
+		dbg('LBE: main')
+		self.cfg.argparse(argv)
+		self.cfg.read()
+		return 0
 
 if __name__ == '__main__':
-	sys.exit(main(sys.argv[1:]))
+	dbg('main')
+	lbe = LBE()
+	sys.exit(lbe.main(sys.argv[1:]))

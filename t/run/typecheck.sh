@@ -1,4 +1,5 @@
 #!/bin/sh
 set -xeu
 export PYTHONPATH="${PWD}"
-exec python3 -m mypy "${PWD}"
+python3 -m mypy ./lbe.py
+exit 0
