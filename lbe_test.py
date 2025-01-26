@@ -11,6 +11,8 @@ from unittest.mock import MagicMock, call
 
 import lbe
 
+from pathlib import Path
+
 class TestLBE(unittest.TestCase):
 
 	enable_debug = False
@@ -83,16 +85,38 @@ class LogsDebugTest(TestLBE):
 #
 
 class ConfigTest(TestLBE):
-	def test_fake(t):
+
+	def test_init(t):
+		t.assertEqual(lbe.CONFIG_FILE, '~/.config/lvm-be.cfg')
+
+	def test__getpath(t):
 		pass
+
+class ConfigDebugTest(TestLBE):
+
+	enable_debug = True
+
+	def test_init(t):
+		cfg = lbe.Config()
+		t.stderr.write.assert_has_calls([
+			call('Config: debug was enabled from LBE_DEBUG env var'),
+		])
 
 #
 # LBE
 #
 
 class LBETest(TestLBE):
-	def test_fake(t):
-		pass
+
+	def test_init(t):
+		t.assertFalse(lbe.DEBUG)
+
+class LBEDebugTest(TestLBE):
+
+	enable_debug = True
+
+	def test_init(t):
+		t.assertTrue(lbe.DEBUG)
 
 if __name__ == '__main__':
 	unittest.main()
