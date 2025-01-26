@@ -24,17 +24,12 @@ CONFIG_FILE = '~/.config/lvm-be.cfg'
 class Config(object):
 	"""LBE configuration."""
 
-	debug: bool = DEBUG
 	file:  Path = Path(CONFIG_FILE)
 
 	def __init__(self):
-		dbg(f"Config: debug={self.debug}")
 		if DEBUG:
-			self.debug = True
-			dbg(f"Config: debug={self.debug} was set from LBE_DEBUG env var")
+			dbg('Config: debug was enabled from LBE_DEBUG env var')
 		dbg(f"Config: file={self.file}")
-		if not self.file.exists():
-			dbg(f"Config: {self.file} not found!")
 
 	def _getpath(self, name: str) -> Path:
 		return Path(name).expanduser()
@@ -54,9 +49,9 @@ class Config(object):
 		args = parser.parse_args(args = argv)
 
 		dbg(f"Config: args.debug={args.debug}")
-		self.debug = args.debug is True
-		if self.debug:
+		if args.debug is True:
 			DEBUG = True
+			dbg('Config: debug was enabled from CLI args')
 		dbg(f"Config: args.config={args.config}")
 		self.file = self._getpath(args.config.strip())
 
@@ -66,15 +61,16 @@ class Config(object):
 		dbg(f"Config: read file={self.file}")
 		if not self.file.exists():
 			dbg(f"Config: {self.file} not found!")
+			return False
 		cfg = ConfigParser(defaults = {
-			'lbe.debug': 'false',
+			'debug': 'false',
 		})
 		loaded = cfg.read([self.file.as_posix()])
 		dbg(f"Config: loaded files {loaded}")
-		if cfg.has_option('lbe', 'debug') and cfg.getboolean('lbe', 'debug'):
+		if cfg.getboolean('lbe', 'debug'):
 			DEBUG = True
 			self.debug = True
-			dbg(f"Config: debug={self.debug} was set from config file")
+			dbg('Config: debug was enable from config file')
 		return False
 
 class LBE(object):
