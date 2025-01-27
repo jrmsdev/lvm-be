@@ -59,6 +59,14 @@ class TestLBE(unittest.TestCase):
 		finally:
 			t.__set_config_filename('~/.config/lvm-be.cfg')
 
+	@contextmanager
+	def set_config(t, fn):
+		try:
+			t.__set_config_filename(fn)
+			yield
+		finally:
+			t.__set_config_filename('~/.config/lvm-be.cfg')
+
 #
 # Logs
 #
@@ -176,6 +184,15 @@ class LBETest(TestLBE):
 
 	def test_init(t):
 		t.assertFalse(lbe.DEBUG)
+
+	def test_main(t):
+		l = lbe.LBE()
+		t.assertEqual(l.main(), 0)
+
+	def test_config_error(t):
+		with t.set_config('./t/config/error.cfg'):
+			l = lbe.LBE()
+			t.assertEqual(l.main(), 1)
 
 class LBEDebugTest(TestLBE):
 
