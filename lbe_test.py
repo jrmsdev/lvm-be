@@ -159,8 +159,14 @@ class ConfigFileTest(TestLBE):
 			t.assertTrue(cfg.read())
 
 	def test_read_error(t):
-		with t.new_config('./t/error.cfg') as cfg:
+		with t.new_config('./t/config/error.cfg') as cfg:
 			t.assertFalse(cfg.read())
+
+	def test_read_options(t):
+		t.assertFalse(lbe.DEBUG)
+		with t.new_config('./t/config/lbe.cfg') as cfg:
+			t.assertTrue(cfg.read())
+			t.assertTrue(lbe.DEBUG)
 
 #
 # LBE

@@ -95,7 +95,6 @@ class Config(object):
 			return False
 		if cfg.getboolean('lbe', 'debug'):
 			DEBUG = True
-			self.debug = True
 			dbg('Config: debug was enable from config file')
 		return True
 
