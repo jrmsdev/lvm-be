@@ -7,6 +7,7 @@ __doc__ = 'Linux LVM Boot Environments Testing.'
 
 import unittest
 
+from contextlib    import contextmanager
 from unittest.mock import MagicMock, call
 
 import lbe
@@ -24,16 +25,18 @@ class TestLBE(unittest.TestCase):
 
 	__msgout = lbe._msgout
 	__dbgout = lbe._dbgout
+	__errout = lbe._errout
 
 	def setUp(t):
 		lbe.DEBUG = t.enable_debug
 		if t.config_filename != '':
-			lbe.CONFIG_FILE = t.config_filename.strip()
-			lbe.Config.file = Path(lbe.CONFIG_FILE)
+			t.__set_config_filename(t.config_filename)
 		t.msgout = MagicMock()
 		lbe._msgout = t.msgout
 		t.dbgout = MagicMock()
 		lbe._dbgout = t.dbgout
+		t.errout = MagicMock()
+		lbe._errout = t.errout
 
 	def tearDown(t):
 		lbe._msgout = t.__msgout
@@ -41,9 +44,20 @@ class TestLBE(unittest.TestCase):
 		lbe._dbgout = t.__dbgout
 		t.dbgout = None
 		if t.config_filename != '':
-			lbe.CONFIG_FILE = '~/.config/lvm-be.cfg'
-			lbe.Config.file = Path(lbe.CONFIG_FILE)
+			t.__set_config_filename('~/.config/lvm-be.cfg')
 		lbe.DEBUG = False
+
+	def __set_config_filename(t, fn):
+		lbe.CONFIG_FILE = fn.strip()
+		lbe.Config.file = Path(lbe.CONFIG_FILE)
+
+	@contextmanager
+	def new_config(t, fn):
+		try:
+			t.__set_config_filename(fn)
+			yield lbe.Config()
+		finally:
+			t.__set_config_filename('~/.config/lvm-be.cfg')
 
 #
 # Logs
@@ -71,6 +85,15 @@ class LogsTest(TestLBE):
 	def test_dbg(t):
 		lbe.dbg('testing ...')
 		t.dbgout.write.assert_not_called()
+
+	def test_error(t):
+		lbe.error('testing ...')
+		t.errout.write.assert_has_calls([
+			call('[ERROR]'),
+			call(' '),
+			call('testing ...'),
+			call('\n'),
+		])
 
 class LogsDebugTest(TestLBE):
 
@@ -128,10 +151,16 @@ class ConfigFileTest(TestLBE):
 	config_filename = './t/devel/lbedev.cfg'
 
 	def test_read(t):
-		print(lbe.CONFIG_FILE)
 		cfg = lbe.Config()
-		print(cfg.file)
 		t.assertTrue(cfg.read())
+
+	def test_read_not_found(t):
+		with t.new_config('./t/not-found.cfg') as cfg:
+			t.assertTrue(cfg.read())
+
+	def test_read_error(t):
+		with t.new_config('./t/error.cfg') as cfg:
+			t.assertFalse(cfg.read())
 
 #
 # LBE

@@ -20,6 +20,7 @@ DEBUG: bool = os.getenv('LBE_DEBUG', 'false') == 'true'
 
 _msgout = sys.stdout
 _dbgout = sys.stderr
+_errout = sys.stderr
 
 def _print(*args, file = None):
 	print(*args, file = file)
@@ -32,6 +33,10 @@ def dbg(msg):
 	"""Debug logs."""
 	if DEBUG:
 		_print('[D]', msg, file = _dbgout)
+
+def error(msg):
+	"""Error logs."""
+	_print('[ERROR]', msg, file = _errout)
 
 #
 # Config
@@ -79,14 +84,14 @@ class Config(object):
 		dbg(f"Config: read file={self.file}")
 		if not self.file.exists():
 			dbg(f"Config: {self.file} not found!")
-			return False
+			return True
 		cfg = ConfigParser(defaults = {
 			'debug': 'false',
 		})
-		loaded = cfg.read([self.file.as_posix()])
-		dbg(f"Config: loaded files {loaded}")
-		if len(loaded) < 1:
-			dbg('Config: no files loaded')
+		try:
+			cfg.read([self.file.as_posix()])
+		except Exception as err:
+			error(f"Config: {self.file} {err}")
 			return False
 		if cfg.getboolean('lbe', 'debug'):
 			DEBUG = True
@@ -107,7 +112,8 @@ class LBE(object):
 		"""LBE: CLI main."""
 		dbg('LBE: main')
 		self.cfg.argparse(argv)
-		self.cfg.read()
+		if not self.cfg.read():
+			return 1
 		return 0
 
 if __name__ == '__main__': # pragma: no cover
